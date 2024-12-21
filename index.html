@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nutritional Value Finder</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      transform: translateY(0);
+      transition: transform 0.3s ease;
+    }
+
+    .container:hover {
+      transform: translateY(-5px);
+    }
+
+    h1 {
+      color: #2d3748;
+      font-size: 2.2em;
+      margin-bottom: 20px;
+      font-weight: 600;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    p {
+      color: #4a5568;
+      margin-bottom: 25px;
+      font-size: 1.1em;
+    }
+
+    .input-group {
+      position: relative;
+      margin: 25px 0;
+    }
+
+    input {
+      width: 100%;
+      padding: 15px 20px;
+      font-size: 1em;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      background: white;
+      transition: all 0.3s ease;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
+    }
+
+    button {
+      padding: 15px 30px;
+      font-size: 1.1em;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      font-family: 'Poppins', sans-serif;
+      margin-top: 10px;
+      width: 80%;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    #result {
+      margin-top: 30px;
+      display: none;
+      text-align: left;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    #foodName {
+      color: #2d3748;
+      font-size: 1.5em;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #667eea;
+    }
+
+    #nutritionalInfo {
+      list-style: none;
+    }
+
+    #nutritionalInfo li {
+      margin: 15px 0;
+      padding: 12px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #nutritionalInfo li:hover {
+      transform: translateX(5px);
+    }
+
+    .nutrient-label {
+      color: #4a5568;
+      font-weight: 500;
+    }
+
+    .nutrient-value {
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    .error-message {
+      color: #e53e3e;
+      background: #fff5f5;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    /* Loading Animation */
+    .loading {
+      position: relative;
+      opacity: 0.7;
+    }
+
+    .loading::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 30px;
+      height: 30px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      transform: translate(-50%, -50%);
+    }
+
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Nutrition Insight</h1>
+    <p>Discover the nutritional content of any food</p>
+    
+    <div class="input-group">
+      <input type="text" id="foodItem" placeholder="Enter a food item (e.g., apple, chicken breast)" />
+    </div>
+    <button onclick="findNutritionalValue()">
+      <i class="fas fa-search"></i> Analyze Nutrition
+    </button>
+
+    <div id="result">
+      <h2 id="foodName"></h2>
+      <ul id="nutritionalInfo"></ul>
+    </div>
+  </div>
+
+  <script>
+    async function findNutritionalValue() {
+      const foodItem = document.getElementById("foodItem").value.trim();
+      const resultDiv = document.getElementById("result");
+      const foodName = document.getElementById("foodName");
+      const nutritionalInfo = document.getElementById("nutritionalInfo");
+      const button = document.querySelector('button');
+      const container = document.querySelector('.container');
+
+      if (!foodItem) {
+        showError("Please enter a food item.");
+        return;
+      }
+
+      // Show loading state
+      button.disabled = true;
+      container.classList.add('loading');
+      resultDiv.style.display = "none";
+
+      const API_KEY = "FLP8C+V3pzusJMEstoChDA==sj3KFF3xVGgrXoZ8";
+      const apiUrl = `https://api.calorieninjas.com/v1/nutrition?query=${encodeURIComponent(foodItem)}`;
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'X-Api-Key': API_KEY
+          }
+        });
+        
+        if (!response.ok) throw new Error("Failed to fetch nutritional information.");
+
+        const data = await response.json();
+        
+        if (!data.items || data.items.length === 0) {
+          throw new Error("No nutritional information found for this food item.");
+        }
+
+        foodName.textContent = `${foodItem.charAt(0).toUpperCase() + foodItem.slice(1)}`;
+        nutritionalInfo.innerHTML = `
+          <li>
+            <span class="nutrient-label"><i class="fas fa-fire"></i> Calories</span>
+            <span class="nutrient-value">${data.items[0].calories} kcal</span>
+          </li>
+          <li>
+            <span class="nutrient-label"><i class="fas fa-dumbbell"></i> Protein</span>
+            <span class="nutrient-value">${data.items[0].protein_g} g</span>
+          </li>
+          <li>
+            <span class="nutrient-label"><i class="fas fa-oil-can"></i> Fat</span>
+            <span class="nutrient-value">${data.items[0].fat_total_g} g</span>
+          </li>
+          <li>
+            <span class="nutrient-label"><i class="fas fa-bread-slice"></i> Carbohydrates</span>
+            <span class="nutrient-value">${data.items[0].carbohydrates_total_g} g</span>
+          </li>
+          <li>
+            <span class="nutrient-label"><i class="fas fa-seedling"></i> Fiber</span>
+            <span class="nutrient-value">${data.items[0].fiber_g} g</span>
+          </li>
+        `;
+        resultDiv.style.display = "block";
+      } catch (error) {
+        showError(error.message);
+      } finally {
+        button.disabled = false;
+        container.classList.remove('loading');
+      }
+    }
+
+    function showError(message) {
+      const resultDiv = document.getElementById("result");
+      const nutritionalInfo = document.getElementById("nutritionalInfo");
+      nutritionalInfo.innerHTML = `<div class="error-message">
+        <i class="fas fa-exclamation-circle"></i> ${message}
+      </div>`;
+      resultDiv.style.display = "block";
+    }
+
+    // Add enter key support
+    document.getElementById('foodItem').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        findNutritionalValue();
+      }
+    });
+  </script>
+</body>
+</html>
